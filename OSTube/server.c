@@ -132,7 +132,6 @@ void *connection_handler (void *socket_desc){
     }
 
   FILE *fileptr;
-  FILE *videofileptr;//Se podria manejar con semaforos pero es para que cargue el html junto con el video
 
 	char *buffer;
 	long filelen;
@@ -174,7 +173,22 @@ void *connection_handler (void *socket_desc){
 
 		printf("%s", peticion_realizada);
 
-		//free(peticion_realizada);
+		fileptr = fopen("Web/Files_HTML/index.html", "rb");
+		char* fstr = "text/html";
+		sprintf(salida, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nConnection: close\r\n\r\n",fstr);
+		send(sock, salida, strlen(salida), 0);
+
+
+    while ((numRead = fread(salida, 1, 2000, fileptr)) > 0){
+        send(sock, salida, numRead, 0);
+    }
+    fclose(fileptr);
+  }else if ( !strncmp(salida, "GET /watch", 10) ){
+    char peticion_realizada[80];
+		memset(peticion_realizada,0,80);
+		strcat(peticion_realizada,"Peticion get de /watch");
+
+		printf("%s", peticion_realizada);
 
 		fileptr = fopen("Web/Files_HTML/watchVideo.html", "rb");
 		char* fstr = "text/html";
@@ -194,22 +208,46 @@ void *connection_handler (void *socket_desc){
 
 		printf("%s", peticion_realizada);
 
+    char *fileName= strtok(salida, " ");
+    fileName = strtok(NULL, " ");
+
+    printf("%s", fileName);
+
+    fileptr = fopen(fileName+1, "rb");
+    char* fstr = "video/mp4";
+		sprintf(salida, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nConnection: close\r\n\r\n",fstr);
+		send(sock, salida, strlen(salida), 0);
+
+
+    while ((numRead = fread(salida, 1, 2000, fileptr)) > 0){
+        send(sock, salida, numRead, 0);
+    }
+    fclose(fileptr);
+
+  } else if ( !strncmp(salida, "GET /Gallery/Files_Image/", 25) ){
+
+    char peticion_realizada[100];
+		memset(peticion_realizada,0,100);
+		strcat(peticion_realizada,"Peticion get image");
+
+		printf("%s", peticion_realizada);
+
 		//free(peticion_realizada);
     char *fileName= strtok(salida, " ");
     fileName = strtok(NULL, " ");
 
     printf("%s", fileName);
 
-    videofileptr = fopen(fileName+1, "rb");
-    char* fstr = "video/mp4";
+    fileptr = fopen(fileName+1, "rb");
+    char* fstr = "image/jpeg";
 		sprintf(salida, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nConnection: close\r\n\r\n",fstr);
 		send(sock, salida, strlen(salida), 0);
 
 
-    while ((numRead = fread(salida, 1, 2000, videofileptr)) > 0){
+    while ((numRead = fread(salida, 1, 2000, fileptr)) > 0){
         send(sock, salida, numRead, 0);
     }
-    fclose(videofileptr);
+    fclose(fileptr);
 
   }
 
